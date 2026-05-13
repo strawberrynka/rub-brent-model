@@ -1,0 +1,6 @@
+pandas
+numpy
+matplotlib
+statsmodels
+pandas_datareader
+requests

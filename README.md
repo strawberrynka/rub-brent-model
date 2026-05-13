@@ -36,7 +36,7 @@ python main.py
 ## 5. Структура проекта
 
 ```text
-project/
+rub-brent-model/
   README.md
   requirements.txt
   main.py
@@ -46,14 +46,13 @@ project/
     analysis.py
     modeling.py
     plots.py
-    report_generator.py
   data/
     raw/
     processed/
   outputs/
     figures/
     tables/
-    report.md
+    report.md [Был перемещен в родительскую папку rub-brent-model]
 ```
 
 ## 6. Выходные файлы
@@ -64,4 +63,4 @@ project/
   - `outputs/tables/correlation_matrix.csv`
   - `outputs/tables/regression_results.csv`
   - `outputs/tables/model_comparison.csv`
-- Отчет: `outputs/report.md`
+- Отчет: `report.md`

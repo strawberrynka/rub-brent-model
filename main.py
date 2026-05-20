@@ -3,7 +3,12 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from src.analysis import save_correlation_matrix, save_descriptive_statistics
+from src.analysis import (
+    run_adf_tests,
+    run_cointegration_test,
+    save_correlation_matrix,
+    save_descriptive_statistics,
+)
 from src.data_loader import load_brent_fred, load_ppp_world_bank, load_usd_rub_fred
 from src.modeling import (
     extract_residuals_for_plot,
@@ -51,6 +56,10 @@ def main() -> None:
     logger.info("Сохранение таблиц описательной статистики и корреляций...")
     descriptive_stats = save_descriptive_statistics(df, outputs_tables / "descriptive_statistics.csv")
     corr_matrix = save_correlation_matrix(df, outputs_tables / "correlation_matrix.csv")
+
+    logger.info("Проведение тестов на стационарность и коинтеграцию...")
+    adf_results = run_adf_tests(df, outputs_tables / "adf_tests.csv")
+    coint_result = run_cointegration_test(df, outputs_tables / "cointegration_test.csv")
 
     logger.info("Оценка OLS-моделей...")
     models = run_models(df)
@@ -105,6 +114,8 @@ def main() -> None:
         regression_results=regression_results,
         model_comparison=model_comparison,
         models=models,
+        adf_results=adf_results,
+        coint_result=coint_result,
         output_path=report_path,
     )
 

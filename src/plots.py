@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
+
+os.environ.setdefault("MPLCONFIGDIR", str(Path("/tmp") / "matplotlib-cache"))
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -56,11 +59,11 @@ def plot_scatter_changes(df: pd.DataFrame, out_path: Path) -> None:
     _savefig(out_path)
 
 
-def plot_residuals(residuals: pd.Series, out_path: Path) -> None:
+def plot_residuals(residuals: pd.Series, out_path: Path, model_name: str = "модели") -> None:
     plt.figure(figsize=(10, 4))
     plt.plot(residuals.index, residuals.values, marker="o", linewidth=1.4)
     plt.axhline(0, color="black", linestyle="--", linewidth=1)
-    plt.title("Остатки модели в изменениях (Модель 3)")
+    plt.title(f"Остатки модели в изменениях ({model_name})")
     plt.xlabel("Индекс наблюдения")
     plt.ylabel("Остатки")
     _savefig(out_path)

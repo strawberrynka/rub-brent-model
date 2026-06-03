@@ -33,11 +33,20 @@ def build_final_dataset(
     df = df.dropna(subset=["brent", "nominal_usd_rub", "ppp_basket_usd_rub"]).copy()
     df["basket_real_usd_rub"] = df["nominal_usd_rub"] / df["ppp_basket_usd_rub"]
 
+    for col in ["brent", "basket_real_usd_rub"]:
+        if (df[col] <= 0).any():
+            raise ValueError(f"Колонка {col} содержит не-положительные значения, логарифм невозможен.")
+
     df["log_brent"] = np.log(df["brent"])
     df["log_basket_real_usd_rub"] = np.log(df["basket_real_usd_rub"])
     df["dlog_brent"] = df["log_brent"].diff()
     df["dlog_basket_real_usd_rub"] = df["log_basket_real_usd_rub"].diff()
     df["dlog_brent_lag1"] = df["dlog_brent"].shift(1)
+    df["dlog_basket_real_usd_rub_lag1"] = df["dlog_basket_real_usd_rub"].shift(1)
+
+    df["dummy_1998_crisis"] = (df["year"] == 1998).astype(int)
+    df["dummy_2014_2015_shock"] = df["year"].isin([2014, 2015]).astype(int)
+    df["dummy_2022_plus"] = (df["year"] >= 2022).astype(int)
 
     df = df.sort_values("year").reset_index(drop=True)
 

@@ -1,8 +1,5 @@
 # Модель связи реального курса доллара по потребительской корзине и цены нефти Brent
 
-- Бойко София, БПМИ248
-- Шумакова Екатерина, БПМИ2310
-
 ## 1. Краткое описание проекта
 Проект оценивает связь между ценой нефти Brent и реальным курсом доллара к рублю, рассчитанным через паритет покупательной способности для частного потребления (PPP private consumption), а не через CPI-индексы.
 
@@ -36,10 +33,16 @@ pip install -r requirements.txt
 python main.py
 ```
 
+Если используется проектное виртуальное окружение:
+
+```bash
+.venv/bin/python main.py
+```
+
 ## 5. Структура проекта
 
 ```text
-rub-brent-model/
+project/
   README.md
   requirements.txt
   main.py
@@ -49,13 +52,16 @@ rub-brent-model/
     analysis.py
     modeling.py
     plots.py
+    report_generator.py
+    pdf_report_generator.py
   data/
     raw/
     processed/
   outputs/
     figures/
     tables/
-    report.md [Был перемещен в родительскую папку rub-brent-model]
+    report.md
+    report_detailed.pdf
 ```
 
 ## 6. Выходные файлы
@@ -66,4 +72,15 @@ rub-brent-model/
   - `outputs/tables/correlation_matrix.csv`
   - `outputs/tables/regression_results.csv`
   - `outputs/tables/model_comparison.csv`
-- Отчет: `report.md`
+  - `outputs/tables/stationarity_tests.csv`
+- Отчет: `outputs/report.md`
+- PDF-отчет: `outputs/report_detailed.pdf`
+
+## 7. Методологические замечания
+- Регрессионные таблицы включают обычные OLS-ошибки и HAC-ошибки Ньюи-Уэста с одним лагом.
+- Расширенные модели учитывают лаг изменения реального корзинного курса и dummy-переменные для 1998, 2014-2015 и 2022+.
+- Дополнительно была проверена версия с инфляцией, ставкой и санкционными/кризисными индикаторами, но по adjusted R-squared, AIC и BIC она оказалась хуже `model_5`, поэтому не включена в финальную спецификацию.
+- ADF/KPSS-тесты помогают оценить, насколько надежно работать с уровнями и изменениями рядов.
+- Из-за годовой частоты PPP выборка небольшая, поэтому результаты следует трактовать как оценку связи, а не доказательство причинности.
+- Durbin-Watson и Ljung-Box помогают проверить автокорреляцию остатков; при заметной автокорреляции важнее смотреть на робастные ошибки и альтернативные спецификации.
+- Если FRED или World Bank временно недоступны, загрузчик использует последние сохраненные raw-файлы из `data/raw`.

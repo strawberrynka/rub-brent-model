@@ -1,0 +1,82 @@
+{
+  "generated_at_utc": "2026-11-05T19:22:28.879993+00:00",
+  "git_commit": "fc13f0739de7b385a53c736493d1d897574acf7f",
+  "git_dirty_at_run": true,
+  "code_sha256": {
+    "main.py": "3d50a673063705dfdab704c2030d4006f8216abafdf8165955b6e328edca7700",
+    "src/__init__.py": "1c8b82a55f6e0d4cf533dbb5c50936192c8fd2b2b2f6467b54e1ef1985a11b24",
+    "src/analysis.py": "3ac961fed6e9b594f125c752e4158c7ea491c4f77db1063376997bf61fe73b09",
+    "src/config.py": "8c98fc23a7725971daf59f74e2db528b646ae1e9df81950d3d196dd7175bda3d",
+    "src/data_loader.py": "c0d70c7cc66035b56ff1c6b8720ffb5eac9ebd4430e41b5d3686e0fb2c433655",
+    "src/modeling.py": "55fdd5115dd6a881feb7bf76f1bbe35eec27752fd05a83226a6e4f3ad69b2438",
+    "src/pdf_report_generator.py": "e7e231dfe626fa6f24d7897f80e78bb4b4a3163803f49f951db1de8c0ec3d91b",
+    "src/plots.py": "a1ce4fa1ad946589717538095e2899fa5cc74432b7e8f82c791359fde25b6f86",
+    "src/preprocessing.py": "fc6472714cce94eb8ec83836e530c83bb165d83d516e29ee2d93bb811ba88eb2",
+    "src/report_generator.py": "e2dd89d0fe3eaf5a7ef6684786691334155650fd1fe46177970e74e751fe671c"
+  },
+  "python": "3.12.6",
+  "packages": {
+    "pandas": "3.1.1",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "statsmodels": "0.15.0",
+    "matplotlib": "3.11.2",
+    "reportlab": "5.1.0",
+    "requests": "2.34.2"
+  },
+  "config": {
+    "data": {
+      "start_year": 1992,
+      "end_year": 2025,
+      "min_brent_observations": 200
+    },
+    "model": {
+      "min_observations": 15,
+      "hac_lags": 1,
+      "hac_small_sample_correction": true,
+      "diagnostic_lags": 1,
+      "adf_maxlag": 2,
+      "coint_maxlag": 1,
+      "coint_sensitivity_lags": [
+        0,
+        1,
+        2
+      ],
+      "sensitivity_start_years": [
+        1993,
+        1995,
+        2000
+      ],
+      "sensitivity_hac_lags": [
+        0,
+        1,
+        2
+      ],
+      "reference_model": "ar1_oil"
+    }
+  },
+  "data": {
+    "mode": "offline",
+    "fetched_at_utc": null
+  },
+  "sources": {
+    "brent": {
+      "file": "brent_fred_raw.csv",
+      "series": "DCOILBRENTEU",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILBRENTEU",
+      "sha256": "656166c9d47438b7d719ea6d47fcbf07ade81e1825f4ecc95b12d2241f406660"
+    },
+    "usd_rub": {
+      "file": "usd_rub_fred_raw.csv",
+      "series": "CCUSMA02RUM618N",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CCUSMA02RUM618N",
+      "sha256": "a3dfbe6f876e2dca5900cf78af81420c35678ac875e2563cdc1575547c9ff92b"
+    },
+    "ppp": {
+      "file": "ppp_world_bank_raw.csv",
+      "series": "PA.NUS.PRVT.PP",
+      "url": "https://api.worldbank.org/v2/country/RUS/indicator/PA.NUS.PRVT.PP?format=json&per_page=20000",
+      "sha256": "14c38246c20371483ecc17e2a1a9b7bbf948c9288a57f2aeefc2737b6c0ca361"
+    }
+  }
+}

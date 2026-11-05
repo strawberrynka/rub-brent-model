@@ -1,0 +1,45 @@
+name: Reproduce analysis
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  analysis:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      MPLBACKEND: Agg
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Install tested environment
+        run: python -m pip install -r requirements-dev.txt
+      - name: Check code
+        run: python -m ruff check .
+      - name: Test offline data and models
+        run: python -m pytest -q
+      - name: Rebuild report from snapshot
+        run: python main.py --offline
+      - name: Execute research notebook
+        run: python scripts/execute_notebook.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: research-${{ matrix.os }}
+          path: |
+            outputs/
+            build/research.executed.ipynb

@@ -1,69 +1,98 @@
-from __future__ import annotations
-
-import os
 from pathlib import Path
 
-os.environ.setdefault("MPLCONFIGDIR", str(Path("/tmp") / "matplotlib-cache"))
+import matplotlib
 
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
+from src.config import ModelConfig
 
-plt.style.use("seaborn-v0_8-whitegrid")
+plt.rcParams.update(
+    {
+        "font.family": "DejaVu Sans",
+        "font.size": 10,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.titleweight": "bold",
+        "axes.labelcolor": "#334155",
+        "text.color": "#172033",
+        "figure.facecolor": "white",
+        "axes.facecolor": "white",
+    }
+)
+BLUE, TEAL = "#2855A6", "#008477"
 
 
-def _savefig(path: Path) -> None:
+def _save(fig, path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
-    plt.tight_layout()
-    plt.savefig(path, dpi=180)
-    plt.close()
+    fig.savefig(path, dpi=170, bbox_inches="tight")
+    plt.close(fig)
 
 
-def plot_time_series(df: pd.DataFrame, x: str, y: str, title: str, ylabel: str, out_path: Path) -> None:
-    plt.figure(figsize=(10, 5))
-    plt.plot(df[x], df[y], marker="o", linewidth=1.8)
-    plt.title(title)
-    plt.xlabel("Год")
-    plt.ylabel(ylabel)
-    _savefig(out_path)
+def create_figures(
+    df: pd.DataFrame,
+    regression: pd.DataFrame,
+    sensitivity: pd.DataFrame,
+    reference,
+    out_dir: Path,
+    config: ModelConfig,
+) -> None:
+    fig, axes = plt.subplots(2, 1, figsize=(10, 6), sharex=True, layout="constrained")
+    axes[0].plot(df.year, df.brent, color=BLUE, linewidth=2)
+    axes[0].set(ylabel="USD за баррель", title="Brent и отношение рыночного курса к ППС")
+    axes[1].plot(df.year, df.basket_real_usd_rub, color=TEAL, linewidth=2)
+    axes[1].set(ylabel="q = USD/RUB ÷ ППС", xlabel="Год")
+    for ax in axes:
+        ax.grid(axis="y", alpha=0.2)
+    _save(fig, out_dir / "overview.png")
 
+    effects = regression.loc[
+        (regression.parameter == "dlog_brent") & regression.group.eq("changes")
+    ].copy()
+    fig, ax = plt.subplots(figsize=(10, 4.3), layout="constrained")
+    y = np.arange(len(effects))
+    ax.errorbar(
+        effects.coef,
+        y,
+        xerr=[effects.coef - effects.ci_low, effects.ci_high - effects.coef],
+        fmt="o",
+        color=BLUE,
+        capsize=4,
+    )
+    ax.set_yticks(y, effects.label)
+    ax.axvline(0, color="#94A3B8", linestyle="--")
+    ax.set(
+        xlabel="Коэффициент при изменении Brent; 95% HAC-интервал",
+        title="Зависимость оценки от спецификации",
+    )
+    ax.grid(axis="x", alpha=0.2)
+    _save(fig, out_dir / "brent_coefficients.png")
 
-def plot_nominal_vs_ppp(df: pd.DataFrame, out_path: Path) -> None:
-    plt.figure(figsize=(10, 5))
-    plt.plot(df["year"], df["nominal_usd_rub"], marker="o", label="Номинальный USD/RUB")
-    plt.plot(df["year"], df["ppp_basket_usd_rub"], marker="s", label="PPP корзинный курс")
-    plt.title("Сравнение рыночного USD/RUB и курса по потребительской корзине")
-    plt.xlabel("Год")
-    plt.ylabel("RUB за 1 USD")
-    plt.legend()
-    _savefig(out_path)
+    selected = sensitivity.loc[
+        sensitivity.status.eq("ok") & sensitivity.hac_lags.eq(config.hac_lags)
+    ].copy()
+    fig, ax = plt.subplots(figsize=(10, 5), layout="constrained")
+    y = np.arange(len(selected))
+    labels = [f"{row.model} | с {int(row.start_year_requested)}" for row in selected.itertuples()]
+    ax.errorbar(
+        selected.coef,
+        y,
+        xerr=[selected.coef - selected.ci_low, selected.ci_high - selected.coef],
+        fmt="o",
+        color=TEAL,
+        capsize=4,
+    )
+    ax.set_yticks(y, labels, fontsize=9)
+    ax.axvline(0, color="#94A3B8", linestyle="--")
+    ax.set(xlabel="Коэффициент Brent; 95% HAC-интервал", title="Устойчивость к началу выборки")
+    ax.grid(axis="x", alpha=0.2)
+    _save(fig, out_dir / "sensitivity.png")
 
-
-def plot_scatter_levels(df: pd.DataFrame, out_path: Path) -> None:
-    plot_df = df[["log_brent", "log_basket_real_usd_rub"]].dropna()
-    plt.figure(figsize=(7, 5))
-    plt.scatter(plot_df["log_brent"], plot_df["log_basket_real_usd_rub"], alpha=0.8)
-    plt.title("Scatter: log уровни")
-    plt.xlabel("log_brent")
-    plt.ylabel("log_basket_real_usd_rub")
-    _savefig(out_path)
-
-
-def plot_scatter_changes(df: pd.DataFrame, out_path: Path) -> None:
-    plot_df = df[["dlog_brent", "dlog_basket_real_usd_rub"]].dropna()
-    plt.figure(figsize=(7, 5))
-    plt.scatter(plot_df["dlog_brent"], plot_df["dlog_basket_real_usd_rub"], alpha=0.8)
-    plt.title("Scatter: изменения логарифмов")
-    plt.xlabel("dlog_brent")
-    plt.ylabel("dlog_basket_real_usd_rub")
-    _savefig(out_path)
-
-
-def plot_residuals(residuals: pd.Series, out_path: Path, model_name: str = "модели") -> None:
-    plt.figure(figsize=(10, 4))
-    plt.plot(residuals.index, residuals.values, marker="o", linewidth=1.4)
-    plt.axhline(0, color="black", linestyle="--", linewidth=1)
-    plt.title(f"Остатки модели в изменениях ({model_name})")
-    plt.xlabel("Индекс наблюдения")
-    plt.ylabel("Остатки")
-    _savefig(out_path)
+    fig, ax = plt.subplots(figsize=(10, 3.6), layout="constrained")
+    ax.plot(reference.result.resid.index, reference.result.resid, color=BLUE, marker="o", markersize=4)
+    ax.axhline(0, color="#94A3B8", linestyle="--")
+    ax.set(xlabel="Год", ylabel="Остаток, Δlog(q)", title=f"Остатки: {reference.name}")
+    ax.grid(axis="y", alpha=0.2)
+    _save(fig, out_dir / "residuals.png")

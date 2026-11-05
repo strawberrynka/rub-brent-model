@@ -1,0 +1,8 @@
+# Direct dependencies; requirements.txt locks the tested environment.
+pandas
+numpy
+matplotlib
+statsmodels
+requests
+reportlab
+tabulate

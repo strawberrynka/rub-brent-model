@@ -1,0 +1,2 @@
+model,n_obs,start_year,end_year,r_squared,aic,bic,note
+levels,33,1993,2025,0.2634505176520461,7.363847671182015,10.356862794114974,Exploratory only; not comparable to change models
